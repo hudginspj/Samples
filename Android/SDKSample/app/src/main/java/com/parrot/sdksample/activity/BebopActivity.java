@@ -103,7 +103,11 @@ public class BebopActivity extends AppCompatActivity implements SensorEventListe
         //((TextView)findViewById(R.id.X)).setText("X rot: "+(Math.asin(event.values[0])*2));
         //((TextView)findViewById(R.id.Y)).setText("Y rot: "+(Math.asin(event.values[1])*2));
         //((TextView)findViewById(R.id.z)).setText("Z rot: "+(Math.asin(event.values[2])*2));
-        ((TextView)findViewById(R.id.z)).setText("DroneZ: "+(DynamicsUtilities.droneZ));
+
+        //((TextView)findViewById(R.id.z)).setText("DroneZ: "+(DynamicsUtilities.droneZ));
+        DynamicsUtilities.calcSlaveYaw();
+        ((TextView)findViewById(R.id.z)).setText("Yaw: "+(DynamicsUtilities.yaw));
+        mBebopDrone.setYaw(DynamicsUtilities.yaw);
 
     }
 
@@ -152,6 +156,12 @@ public class BebopActivity extends AppCompatActivity implements SensorEventListe
 
     private void initIHM() {
         mVideoView = (BebopVideoView) findViewById(R.id.videoView);
+
+        findViewById(R.id.calibrate).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                DynamicsUtilities.calibrate();
+            }
+        });
 
         findViewById(R.id.emergencyBt).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {

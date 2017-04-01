@@ -15,21 +15,26 @@ import com.parrot.arsdk.arcontroller.ARFeatureARDrone3;
 public class DynamicsUtilities {
     private static final String TAG = "DynamicsUtilities";
 
-    private static byte flag = 0;
-    private static byte roll = 0;
-    private static byte pitch = 0;
-    private static byte yaw = 0;
-    private static byte gaz = 0;
-    private static byte timestampAndSeqNum = 0;
+    public static byte flag = 0;
+    public static byte roll = 0;
+    public static byte pitch = 0;
+    public static byte yaw = 0;
+    public static byte gaz = 0;
+    public static byte timestampAndSeqNum = 0;
 
     private static double maxTiltInRadians = Math.toRadians(15);
 
     public static double droneZ = 0.0;
+    public static double calDroneZ = 0.0;
     public static double viewX = 0.0;
     public static double viewY = 0.0;
     public static double viewZ = 0.0;
 
 
+
+    public static void calibrate(){
+        calDroneZ = droneZ;
+    }
 
 
 
@@ -46,7 +51,18 @@ public class DynamicsUtilities {
     }
 
     public static void calcSlaveYaw() {
-
+        double goLeftRad = normalizeRad(viewZ - (droneZ - calDroneZ));
+        if (goLeftRad > 0.5) {
+            yaw = -99;
+        } else if (goLeftRad < -0.5) {
+            yaw = 99;
+        } else if (goLeftRad > 0.1) {
+            yaw = -50;
+        } else if (goLeftRad < -0.1) {
+            yaw = 50;
+        } else {
+            yaw = 0;
+        }
     }
 
 
@@ -83,7 +99,7 @@ public class DynamicsUtilities {
 
 
     public static void updateViewerAtt(double x, double y, double z) {
-        Log.d(TAG, "updateViewerAtt: VIEWER X:" + x + " Y:" + y + " Z:");
+        Log.d(TAG, "updateViewerAtt: VIEWER X:" + x + " Y:" + y + " Z:" + z);
         viewX = x;
         viewY = y;
         viewZ = z;
@@ -94,35 +110,11 @@ public class DynamicsUtilities {
         droneZ = z;
     }
 
-    public static byte getFlag() {
-        return flag;
-    }
-
-    public static byte getRoll() {
-        return roll;
-    }
-
-    public static byte getPitch() {
-        return pitch;
-    }
-
-    public static byte getYaw() {
-        return yaw;
-    }
-
-    public static byte getGaz() {
-        return gaz;
-    }
-
-    public static byte getTimestampAndSeqNum() {
-        return timestampAndSeqNum;
-    }
-
     public static double normalizeRad(double r) {
-        while (r < 0) {
+        while (r < -Math.PI) {
             r += 2* Math.PI;
         }
-        while (r >= 2*Math.PI) {
+        while (r >= Math.PI) {
             r -= 2*Math.PI;
         }
         return r;

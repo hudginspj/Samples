@@ -18,6 +18,23 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:width="150dp"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Calibrate"
+        android:id="@+id/calibrate"
+        android:layout_below="@+id/emergencyBt"
+        android:layout_centerHorizontal="true"
+        android:width="150dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Battery: "
+        android:id="@+id/z"
+        android:layout_below="@+id/textView"
+        android:textColor="#ff0000" />
 
     <Button
         android:layout_width="wrap_content"
@@ -134,14 +151,7 @@
         android:layout_alignParentStart="true"
         android:textColor="#ff0000" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Battery: "
-        android:id="@+id/z"
-        android:layout_below="@+id/textView"
-        android:textColor="#ff0000" />
+
 
     <TextView
         android:layout_width="wrap_content"
