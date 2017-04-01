@@ -15,6 +15,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.golshadi.orientationSensor.sensors.Orientation;
+import com.golshadi.orientationSensor.utils.OrientationSensorInterface;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_DEVICE_STATE_ENUM;
@@ -31,7 +33,7 @@ import com.parrot.sdksample.drone.BebopDrone;
 import com.parrot.sdksample.dynamics.DynamicsUtilities;
 import com.parrot.sdksample.view.BebopVideoView;
 
-public class BebopActivity extends AppCompatActivity implements SensorEventListener {
+public class BebopActivity extends AppCompatActivity implements SensorEventListener, OrientationSensorInterface {
     private static final String TAG = "BebopActivity";
     private BebopDrone mBebopDrone;
 
@@ -71,12 +73,54 @@ public class BebopActivity extends AppCompatActivity implements SensorEventListe
 
     }
 
+    @Override
     protected void onResume() {
 
         super.onResume();
 
         mSensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_FASTEST);
 
+
+        Orientation orientationSensor = new Orientation(this.getApplicationContext(), this);
+
+        //------Turn Orientation sensor ON-------
+        // set tolerance for any directions
+        orientationSensor.init(1.0, 1.0, 1.0);
+
+        // set output speed and turn initialized sensor on
+        // 0 Normal
+        // 1 UI
+        // 2 GAME
+        // 3 FASTEST
+        orientationSensor.on(0);
+        //---------------------------------------
+
+
+        // turn orientation sensor off
+        //orientationSensor.off();
+
+        // return true or false
+        orientationSensor.isSupport();
+
+    }
+
+    @Override
+    public void orientation(Double AZIMUTH, Double PITCH, Double ROLL) {
+        DynamicsUtilities.viewZ = Math.toRadians(AZIMUTH);
+        DynamicsUtilities.viewX = Math.toRadians(PITCH);
+        DynamicsUtilities.viewY = Math.toRadians(ROLL);
+
+
+        DynamicsUtilities.calcSlaveYaw();
+        ((TextView)findViewById(R.id.z)).setText(String.format("DZ: %.0f VZ: %.0f GL%.0f",
+                Math.toDegrees(DynamicsUtilities.droneZ - DynamicsUtilities.droneZ0),
+                Math.toDegrees(DynamicsUtilities.viewZ - DynamicsUtilities.viewZ0),
+                Math.toDegrees(DynamicsUtilities.goLeftRad)));
+        mBebopDrone.setYaw(DynamicsUtilities.yaw);
+
+        Log.d("Azimuth",String.valueOf(AZIMUTH));
+        Log.d("PITCH",String.valueOf(PITCH));
+        Log.d("ROLL",String.valueOf(ROLL));
     }
 
     protected void onPause() {
@@ -92,22 +136,16 @@ public class BebopActivity extends AppCompatActivity implements SensorEventListe
     }
 
     public void onSensorChanged(SensorEvent event) {
-
-        //Log.d(TAG, "onSensorChanged: X rot: "+String.format("%f",event.values[0]));
-
-        //Log.d(TAG, "onSensorChanged: Y rot: "+String.format("%f",event.values[1]));
-
-        //Log.d(TAG, "onSensorChanged: Z rot: "+String.format("%f",event.values[2]));
-
+        /*
         DynamicsUtilities.updateViewerAtt(Math.asin(event.values[0])*2, Math.asin(event.values[1])*2, Math.asin(event.values[2])*2);
-        //((TextView)findViewById(R.id.X)).setText("X rot: "+(Math.asin(event.values[0])*2));
-        //((TextView)findViewById(R.id.Y)).setText("Y rot: "+(Math.asin(event.values[1])*2));
-        //((TextView)findViewById(R.id.z)).setText("Z rot: "+(Math.asin(event.values[2])*2));
 
-        //((TextView)findViewById(R.id.z)).setText("DroneZ: "+(DynamicsUtilities.droneZ));
         DynamicsUtilities.calcSlaveYaw();
-        ((TextView)findViewById(R.id.z)).setText("Yaw: "+(DynamicsUtilities.yaw));
+        ((TextView)findViewById(R.id.z)).setText(String.format("DZ: %.0f VZ: %.0f GL%.0f",
+                Math.toDegrees(DynamicsUtilities.droneZ - DynamicsUtilities.droneZ0),
+                        Math.toDegrees(DynamicsUtilities.viewZ - DynamicsUtilities.viewZ0),
+                        Math.toDegrees(DynamicsUtilities.goLeftRad)));
         mBebopDrone.setYaw(DynamicsUtilities.yaw);
+        */
 
     }
 

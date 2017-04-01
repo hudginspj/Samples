@@ -24,18 +24,41 @@ public class DynamicsUtilities {
 
     private static double maxTiltInRadians = Math.toRadians(15);
 
+    //public static double calZ = 0.0;
+    public static double goLeftRad = 0.0;
+
     public static double droneZ = 0.0;
-    public static double calDroneZ = 0.0;
+    public static double droneZ0 = 0.0;
+
     public static double viewX = 0.0;
     public static double viewY = 0.0;
     public static double viewZ = 0.0;
+    public static double viewZ0 = 0.0;
 
 
 
     public static void calibrate(){
-        calDroneZ = droneZ;
+        //calZ = viewZ + droneZ;
+        droneZ0 = droneZ;
+        viewZ0 = viewZ;
+
     }
 
+
+    public static void calcSlaveYaw() {
+        goLeftRad = normalizeRad( (droneZ - droneZ0) - (viewZ - viewZ0));
+        if (goLeftRad > 1.0) {
+            yaw = -99;
+        } else if (goLeftRad < -1.0) {
+            yaw = 99;
+        } else if (goLeftRad > 0.2) {
+            yaw = -10;
+        } else if (goLeftRad < -0.2) {
+            yaw = 10;
+        } else {
+            yaw = 0;
+        }
+    }
 
 
     public static void calcPitchRoll(double nominalPitchInRadians, byte thetaRightFromCameraInRadians) {
@@ -50,20 +73,6 @@ public class DynamicsUtilities {
         System.out.println("pitch: " + pitch + " / roll: " + roll);
     }
 
-    public static void calcSlaveYaw() {
-        double goLeftRad = normalizeRad(viewZ - (droneZ - calDroneZ));
-        if (goLeftRad > 0.5) {
-            yaw = -99;
-        } else if (goLeftRad < -0.5) {
-            yaw = 99;
-        } else if (goLeftRad > 0.1) {
-            yaw = -50;
-        } else if (goLeftRad < -0.1) {
-            yaw = 50;
-        } else {
-            yaw = 0;
-        }
-    }
 
 
     //add all this to BebopDrone.Listener
@@ -97,13 +106,6 @@ public class DynamicsUtilities {
         deviceController.getFeatureARDrone3().sendPilotingPCMD((byte)flag, (byte)roll, (byte)pitch, (byte)yaw, (byte)gaz, (int)timestampAndSeqNum);
     }
 
-
-    public static void updateViewerAtt(double x, double y, double z) {
-        Log.d(TAG, "updateViewerAtt: VIEWER X:" + x + " Y:" + y + " Z:" + z);
-        viewX = x;
-        viewY = y;
-        viewZ = z;
-    }
 
     public static void updateDroneAtt(double z) {
         Log.d(TAG, "updateDroneAtt: DRONE Z:" + z);
