@@ -3,6 +3,10 @@ package com.parrot.sdksample.activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -14,14 +18,20 @@ import android.widget.TextView;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_DEVICE_STATE_ENUM;
+import com.parrot.arsdk.arcontroller.ARCONTROLLER_DICTIONARY_KEY_ENUM;
+import com.parrot.arsdk.arcontroller.ARControllerArgumentDictionary;
 import com.parrot.arsdk.arcontroller.ARControllerCodec;
+import com.parrot.arsdk.arcontroller.ARControllerDictionary;
+import com.parrot.arsdk.arcontroller.ARDeviceController;
+import com.parrot.arsdk.arcontroller.ARFeatureARDrone3;
 import com.parrot.arsdk.arcontroller.ARFrame;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.sdksample.R;
 import com.parrot.sdksample.drone.BebopDrone;
+import com.parrot.sdksample.dynamics.DynamicsUtilities;
 import com.parrot.sdksample.view.BebopVideoView;
 
-public class BebopActivity extends AppCompatActivity {
+public class BebopActivity extends AppCompatActivity implements SensorEventListener {
     private static final String TAG = "BebopActivity";
     private BebopDrone mBebopDrone;
 
@@ -37,6 +47,10 @@ public class BebopActivity extends AppCompatActivity {
     private int mNbMaxDownload;
     private int mCurrentDownloadIndex;
 
+    private  SensorManager mSensorManager;
+
+    private  Sensor mSensor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +62,48 @@ public class BebopActivity extends AppCompatActivity {
         ARDiscoveryDeviceService service = intent.getParcelableExtra(DeviceListActivity.EXTRA_DEVICE_SERVICE);
         mBebopDrone = new BebopDrone(this, service);
         mBebopDrone.addListener(mBebopListener);
+
+        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+
+        mSensorManager.registerListener(this,mSensor,SensorManager.SENSOR_DELAY_GAME);
+
+    }
+
+    protected void onResume() {
+
+        super.onResume();
+
+        mSensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_FASTEST);
+
+    }
+
+    protected void onPause() {
+
+        super.onPause();
+
+        mSensorManager.unregisterListener(this);
+
+    }
+
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    public void onSensorChanged(SensorEvent event) {
+
+        //Log.d(TAG, "onSensorChanged: X rot: "+String.format("%f",event.values[0]));
+
+        //Log.d(TAG, "onSensorChanged: Y rot: "+String.format("%f",event.values[1]));
+
+        //Log.d(TAG, "onSensorChanged: Z rot: "+String.format("%f",event.values[2]));
+
+        DynamicsUtilities.updateViewerAtt(Math.asin(event.values[0])*2, Math.asin(event.values[1])*2, Math.asin(event.values[2])*2);
+        //((TextView)findViewById(R.id.X)).setText("X rot: "+(Math.asin(event.values[0])*2));
+        //((TextView)findViewById(R.id.Y)).setText("Y rot: "+(Math.asin(event.values[1])*2));
+        //((TextView)findViewById(R.id.z)).setText("Z rot: "+(Math.asin(event.values[2])*2));
+        ((TextView)findViewById(R.id.z)).setText("DroneZ: "+(DynamicsUtilities.droneZ));
 
     }
 
@@ -336,7 +392,6 @@ public class BebopActivity extends AppCompatActivity {
                 return true;
             }
         });
-
         mBatteryLabel = (TextView) findViewById(R.id.batteryLabel);
     }
 
