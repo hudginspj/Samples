@@ -111,16 +111,25 @@ public class BebopActivity extends AppCompatActivity implements SensorEventListe
         DynamicsUtilities.viewY = Math.toRadians(ROLL);
 
 
+
         DynamicsUtilities.calcSlaveYaw();
-        ((TextView)findViewById(R.id.z)).setText(String.format("DZ: %.0f VZ: %.0f GL%.0f",
+        /*((TextView)findViewById(R.id.z)).setText(String.format("DZ: %.0f VZ: %.0f GL%.0f",
                 Math.toDegrees(DynamicsUtilities.droneZ - DynamicsUtilities.droneZ0),
                 Math.toDegrees(DynamicsUtilities.viewZ - DynamicsUtilities.viewZ0),
-                Math.toDegrees(DynamicsUtilities.goLeftRad)));
+                Math.toDegrees(DynamicsUtilities.goLeftRad)));*/
         mBebopDrone.setYaw(DynamicsUtilities.yaw);
 
-        Log.d("Azimuth",String.valueOf(AZIMUTH));
-        Log.d("PITCH",String.valueOf(PITCH));
-        Log.d("ROLL",String.valueOf(ROLL));
+        DynamicsUtilities.calcPitchRoll();
+        ((TextView)findViewById(R.id.z)).setText(String.format("Pitch:%d Roll:%d VZ:%.2f MT:%.1f",
+                DynamicsUtilities.pitch,
+                DynamicsUtilities.roll,
+                Math.toDegrees(DynamicsUtilities.viewZ - DynamicsUtilities.viewZ0),
+                Math.toDegrees(DynamicsUtilities.maxTiltInRadians)
+                ));
+        mBebopDrone.setPitch(DynamicsUtilities.pitch);
+        mBebopDrone.setRoll(DynamicsUtilities.roll);
+        mBebopDrone.setFlag(DynamicsUtilities.flag);
+
     }
 
     protected void onPause() {
@@ -198,6 +207,7 @@ public class BebopActivity extends AppCompatActivity implements SensorEventListe
         findViewById(R.id.calibrate).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 DynamicsUtilities.calibrate();
+
             }
         });
 
