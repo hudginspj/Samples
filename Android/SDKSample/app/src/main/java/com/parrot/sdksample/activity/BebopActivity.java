@@ -119,12 +119,12 @@ public class BebopActivity extends AppCompatActivity implements SensorEventListe
                 Math.toDegrees(DynamicsUtilities.goLeftRad)));*/
         mBebopDrone.setYaw(DynamicsUtilities.yaw);
 
-        DynamicsUtilities.calcPitchRoll();
-        ((TextView)findViewById(R.id.z)).setText(String.format("Pitch:%d Roll:%d VZ:%.2f MT:%.1f",
+        DynamicsUtilities.calcFixedPitchRoll();
+        ((TextView)findViewById(R.id.z)).setText(String.format("Pi:%d Ro:%d DZ:%.2f VZ:%.2f",
                 DynamicsUtilities.pitch,
                 DynamicsUtilities.roll,
-                Math.toDegrees(DynamicsUtilities.viewZ - DynamicsUtilities.viewZ0),
-                Math.toDegrees(DynamicsUtilities.maxTiltInRadians)
+                Math.toDegrees(DynamicsUtilities.droneZ - DynamicsUtilities.droneZ0),
+                Math.toDegrees(DynamicsUtilities.viewZ - DynamicsUtilities.viewZ0)
                 ));
         mBebopDrone.setPitch(DynamicsUtilities.pitch);
         mBebopDrone.setRoll(DynamicsUtilities.roll);
@@ -207,7 +207,6 @@ public class BebopActivity extends AppCompatActivity implements SensorEventListe
         findViewById(R.id.calibrate).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 DynamicsUtilities.calibrate();
-
             }
         });
 

@@ -15,7 +15,6 @@ import com.parrot.arsdk.arcontroller.ARFeatureARDrone3;
 public class DynamicsUtilities {
     private static final String TAG = "DynamicsUtilities";
     private static final double maxViewPitch = Math.toRadians(60.0);
-    private static final double minDronePitch = Math.toRadians(5.0);
 
     public static byte flag = 0;
     public static byte roll = 0;
@@ -28,6 +27,7 @@ public class DynamicsUtilities {
 
     //public static double calZ = 0.0;
     public static double goLeftRad = 0.0;
+    public static double thetaMoveRightFromCenterline = 0.0;
 
     public static double droneZ = 0.0;
     public static double droneZ0 = 0.0;
@@ -37,12 +37,17 @@ public class DynamicsUtilities {
     public static double viewZ = 0.0;
     public static double viewZ0 = 0.0;
 
+    public static double remX = 0.0;
+    public static double remY = 0.0;
+    public static double remZ = 0.0;
+    public static double remZ0 = 0.0;
+
 
     public static void calibrate(){
         //calZ = viewZ + droneZ;
         droneZ0 = droneZ;
         viewZ0 = viewZ;
-
+        remZ0 = remZ;
     }
 
     public static void calcSlaveYaw() {
@@ -64,6 +69,31 @@ public class DynamicsUtilities {
         }
     }
 
+    public static void calcPitchRoll() {
+        thetaMoveRightFromCenterline = normalizeRad((droneZ0 - droneZ) - (remZ0 - remZ)) ;
+
+        double controlThreshold = Math.toRadians(30.0);
+
+        double nomPitch = 0;
+        if (remX < controlThreshold) {
+            flag = 1;
+            nomPitch = maxTiltInRadians/2.0;
+        } else if (remX > 0) {
+            flag = 1;
+            nomPitch = -maxTiltInRadians/2.0;
+        } else {
+            flag = 0;
+        }
+
+        double f = Math.tan(nomPitch);
+        double pitchInRadians = -Math.atan(f * Math.cos(thetaMoveRightFromCenterline));
+        double rollInRadians = Math.atan(f * Math.sin(thetaMoveRightFromCenterline));
+        pitch = (byte) (100.0 * pitchInRadians / maxTiltInRadians) ;
+        roll = (byte) (100.0 * rollInRadians / maxTiltInRadians);
+    }
+
+
+
     public static void calcPitchOnly() {
         double exaggeratedPitch = Math.min(maxViewPitch, Math.max(-maxViewPitch, viewY));
         pitch = (byte) (exaggeratedPitch * 100 / maxViewPitch);
@@ -74,7 +104,7 @@ public class DynamicsUtilities {
         }
     }
 
-    public static void calcPitchRoll() {
+    public static void oldCalcPitchRoll() {
         double thetaMoveRight = droneZ0 - droneZ;
 
         double exaggeratedPitch = Math.min(maxViewPitch, Math.max(-maxViewPitch, viewY));
@@ -93,6 +123,32 @@ public class DynamicsUtilities {
         pitch = (byte) (100.0 * pitchInRadians / maxTiltInRadians) ;
         roll = (byte) (100.0 * rollInRadians / maxTiltInRadians);
     }
+
+    public static void calcFixedPitchRoll() {
+        double thetaMoveRight = droneZ0 - droneZ;
+
+        double controlThreshold = Math.toRadians(15.0);
+
+        double nomPitch = 0;
+        if (viewY < -controlThreshold) {
+            flag = 1;
+            nomPitch = -maxTiltInRadians/2.0;
+        } else if (viewY > controlThreshold) {
+            flag = 1;
+            nomPitch = maxTiltInRadians/2.0;
+        } else {
+            flag = 0;
+        }
+
+        double f = Math.tan(nomPitch);
+        double pitchInRadians = -Math.atan(f * Math.cos(thetaMoveRight));
+        double rollInRadians = Math.atan(f * Math.sin(thetaMoveRight));
+        pitch = (byte) (100.0 * pitchInRadians / maxTiltInRadians) ;
+        roll = (byte) (100.0 * rollInRadians / maxTiltInRadians);
+    }
+
+
+
 
     //add all this to BebopDrone.Listener
     public static void onCommandReceived (ARDeviceController deviceController, ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey, ARControllerDictionary elementDictionary) {
@@ -120,10 +176,10 @@ public class DynamicsUtilities {
     }
 
 
-
-
-    public void setRemoteAttitudeInDegrees(double remAzim, double remRoll, double remPitch) {
-
+    public void setRemoteAttitudeInDegrees(double remAzim, double remPitch, double remRoll) {
+        remZ = Math.toRadians(remAzim);
+        remX = Math.toRadians(remPitch);
+        remY = Math.toRadians(remRoll);
     }
 
     public static void updateDroneAtt(double z) {
